@@ -83,29 +83,29 @@ class NesEmu {
 		this.framebuffer_u32 = new Uint32Array(buffer)
 
 		// sound
-		const audio_ctx = new window.AudioContext()
-		const script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2)
-		script_processor.addEventListener('audioprocess', (event) => {
-			const dst = event.outputBuffer
-			const len = dst.length
+		const audioCtx = new window.AudioContext()
+		const scriptProcessor = audioCtx.createScriptProcessor(AUDIO_BUFFERING, 0, 2)
+		scriptProcessor.addEventListener('audioprocess', (event) => {
+			const dstBuffer = event.outputBuffer
+			const len = dstBuffer.length
 
 			if (this.isSoundPlaying() && this.isRunning){
 				this.emu.frame()
 			}
 
-			const dst_l = dst.getChannelData(0)
-			const dst_r = dst.getChannelData(1)
+			const dstBufferLeft = dstBuffer.getChannelData(0)
+			const dstBufferRight = dstBuffer.getChannelData(1)
 
 			for (let i = 0; i < len; i++) {
-				const src_idx = (this.audioReadCursor + i) & SAMPLE_MASK
-				dst_l[i] = this.audioSamplesLeft[src_idx]
-				dst_r[i] = this.audioSamplesRight[src_idx]
+				const srcIdx = (this.audioReadCursor + i) & SAMPLE_MASK
+				dstBufferLeft[i] = this.audioSamplesLeft[srcIdx]
+				dstBufferRight[i] = this.audioSamplesRight[srcIdx]
 			}
 
 			this.audioReadCursor = (this.audioReadCursor + len) & SAMPLE_MASK
 		})
 
-		script_processor.connect(audio_ctx.destination)
+		scriptProcessor.connect(audioCtx.destination)
 
 		// controllers
 		this.controllers.forEach((controller) => {
