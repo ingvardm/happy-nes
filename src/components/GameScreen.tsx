@@ -2,6 +2,7 @@ import { FC, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useModelCtxEvent, useModelCtxState } from 'react-better-model'
 import LocalStorage from '../services/LocalStorage'
 import NesEmu from '../services/NesEmu'
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../services/NesEmuConfig'
 import GameViewModelCtx from '../views/GameViewModel'
 
 const GameScreen: FC<{}> = () => {
@@ -51,7 +52,11 @@ const GameScreen: FC<{}> = () => {
 	}, [rom])
 
 	return <div className='canvas-wrapper'>
-		<canvas id="nes-canvas" width="256" height="240"/>
+		<canvas
+			id='nes-canvas'
+			className='scaled'
+			width={SCREEN_WIDTH}
+			height={SCREEN_HEIGHT}/>
 	</div>
 }
 

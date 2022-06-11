@@ -5,14 +5,19 @@
 .main-menu {
 	display: flex;
 	padding: 0.5rem;
+	position: absolute;
+	flex-direction: column;
+	top: 0;
+	left: 0;
 }
 
 .main-menu .main-menu-button {
 	padding: 0.5rem 1rem;
-	border: 1px solid grey;
 	cursor: pointer;
 	border-radius: calc(1rem / 3);
 	margin: 0.5rem;
+	background-color: rgba(255, 255, 255, 0.2);
+	color: white;
 }
 
 .main-menu .main-menu-button:hover {

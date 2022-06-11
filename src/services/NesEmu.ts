@@ -76,6 +76,7 @@ class NesEmu {
 		this.canvasCtx = canvas.getContext("2d")!
 		this.frame = this.canvasCtx.getImageData(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 		this.canvasCtx.fillStyle = "black"
+		this.canvasCtx.imageSmoothingEnabled = false
 		this.canvasCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 		const buffer = new ArrayBuffer(this.frame.data.length)
 		this.framebuffer_u8 = new Uint8ClampedArray(buffer)

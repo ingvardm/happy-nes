@@ -5,6 +5,9 @@
 
 .canvas-wrapper {
 	height: 100%;
+	display: flex;
+	justify-content: center;
+	background-color: black;
 }
 
 #nes-canvas {
@@ -12,6 +15,6 @@
 	aspect-ratio: var(--native-width) / var(--native-height);
 }
 
-#nes-canvas .scaled {
+#nes-canvas.scaled {
 	height: 100%;
 }
