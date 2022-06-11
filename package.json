@@ -1,7 +1,7 @@
 {
-  "name": "webnes",
-  "version": "0.1.0",
-  "private": true,
+  "name": "happy-nes",
+  "version": "0.1.1",
+  "private": false,
   "dependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
@@ -10,7 +10,6 @@
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "git": "^0.1.5",
     "jsnes": "https://github.com/ingvardm/jsnes.git#master",
     "react": "^18.1.0",
     "react-better-model": "^0.1.4",

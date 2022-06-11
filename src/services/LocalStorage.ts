@@ -22,6 +22,20 @@ export default class LocalStorage {
 		localStorage.setItem(key, JSON.stringify(data))
 	}
 
+	static merge<K extends keyof StorageItems, D extends StorageItems[K]>(
+		key: K,
+		data: D,
+	){
+		const oldValue = LocalStorage.get(key) || {}
+
+		const newValue = {
+			...oldValue,
+			...data,
+		}
+
+		LocalStorage.set(key, newValue)
+	}
+
 	static remove<K extends keyof StorageItems>(key: K) {
 		localStorage.removeItem(key)
 	}
