@@ -1,3 +1,9 @@
+html, body, #game-view, #root, .App {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +11,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --native-height: 240px;
+  --native-width: 256px;
+
+  font-size: 12px;
+  font-size: 1rem;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+#nes-canvas {
+  height: calc(var(--native-height) * 3);
+  aspect-ratio: var(--native-width) / var(--native-height);
 }
