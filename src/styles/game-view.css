@@ -1,0 +1,17 @@
+#game-view {
+	display: flex;
+	flex-direction: column;
+}
+
+.canvas-wrapper {
+	height: 100%;
+}
+
+#nes-canvas {
+	height: calc(var(--native-height) * 3);
+	aspect-ratio: var(--native-width) / var(--native-height);
+}
+
+#nes-canvas .scaled {
+	height: 100%;
+}

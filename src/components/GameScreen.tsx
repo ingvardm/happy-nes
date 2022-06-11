@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react'
+import { FC, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useModelCtxEvent, useModelCtxState } from 'react-better-model'
 import LocalStorage from '../services/LocalStorage'
 import NesEmu from '../services/NesEmu'
@@ -50,7 +50,9 @@ const GameScreen: FC<{}> = () => {
 		}
 	}, [rom])
 
-	return <canvas id="nes-canvas" width="256" height="240"/>
+	return <div className='canvas-wrapper'>
+		<canvas id="nes-canvas" width="256" height="240"/>
+	</div>
 }
 
 export default GameScreen

@@ -18,8 +18,3 @@ body {
   font-size: 12px;
   font-size: 1rem;
 }
-
-#nes-canvas {
-  height: calc(var(--native-height) * 3);
-  aspect-ratio: var(--native-width) / var(--native-height);
-}

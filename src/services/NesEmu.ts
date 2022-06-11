@@ -13,14 +13,14 @@ import {
 
 class NesEmu {
 	//#region audio
-	private audio_samples_L = new Float32Array(SAMPLE_COUNT)
-	private audio_samples_R = new Float32Array(SAMPLE_COUNT)
-	private audio_write_cursor = 0
-	private audio_read_cursor = 0
+	private audioSamplesLeft = new Float32Array(SAMPLE_COUNT)
+	private audioSamplesRight = new Float32Array(SAMPLE_COUNT)
+	private audioWriteCursor = 0
+	private audioReadCursor = 0
 	//#endregion audio
 
 	//#region video
-	private canvas_ctx: CanvasRenderingContext2D | null = null
+	private canvasCtx: CanvasRenderingContext2D | null = null
 	private frame: ImageData = new ImageData(SCREEN_WIDTH, SCREEN_HEIGHT)
 	private framebuffer_u8: Uint8ClampedArray = new Uint8ClampedArray()
 	private framebuffer_u32: Uint32Array = new Uint32Array()
@@ -37,16 +37,16 @@ class NesEmu {
 	}
 
 	private onNesAudioSample = (l: number, r: number) => {
-		this.audio_samples_L[this.audio_write_cursor] = l
-		this.audio_samples_R[this.audio_write_cursor] = r
-		this.audio_write_cursor = (this.audio_write_cursor + 1) & SAMPLE_MASK
+		this.audioSamplesLeft[this.audioWriteCursor] = l
+		this.audioSamplesRight[this.audioWriteCursor] = r
+		this.audioWriteCursor = (this.audioWriteCursor + 1) & SAMPLE_MASK
 	}
 
 	private renderFrame = () => {
 		const frameStart = Date.now()
-		this.emu.frame()
+		// this.emu.frame()
 		this.frame.data.set(this.framebuffer_u8)
-		this.canvas_ctx?.putImageData(this.frame, 0, 0)
+		this.canvasCtx?.putImageData(this.frame, 0, 0)
 
 		const frameEnd = Date.now()
 
@@ -61,6 +61,9 @@ class NesEmu {
 		onAudioSample: this.onNesAudioSample,
 	})
 
+	private isSoundPlaying = () =>
+		((this.audioWriteCursor - this.audioReadCursor) & SAMPLE_MASK) < AUDIO_BUFFERING
+
 	//#region controller
 	private controllers: Controller[] = [
 		new Controller(this.emu, 1)
@@ -70,10 +73,10 @@ class NesEmu {
 	init = () => {
 		const canvas = document.getElementById('nes-canvas')! as HTMLCanvasElement
 
-		this.canvas_ctx = canvas.getContext("2d")!
-		this.frame = this.canvas_ctx.getImageData(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-		this.canvas_ctx.fillStyle = "black"
-		this.canvas_ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+		this.canvasCtx = canvas.getContext("2d")!
+		this.frame = this.canvasCtx.getImageData(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+		this.canvasCtx.fillStyle = "black"
+		this.canvasCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 		const buffer = new ArrayBuffer(this.frame.data.length)
 		this.framebuffer_u8 = new Uint8ClampedArray(buffer)
 		this.framebuffer_u32 = new Uint32Array(buffer)
@@ -82,18 +85,23 @@ class NesEmu {
 		const audio_ctx = new window.AudioContext()
 		const script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2)
 		script_processor.addEventListener('audioprocess', (event) => {
-			var dst = event.outputBuffer;
-			var len = dst.length;
+			const dst = event.outputBuffer
+			const len = dst.length
 
-			var dst_l = dst.getChannelData(0);
-			var dst_r = dst.getChannelData(1);
-			for (var i = 0; i < len; i++) {
-				var src_idx = (this.audio_read_cursor + i) & SAMPLE_MASK;
-				dst_l[i] = this.audio_samples_L[src_idx];
-				dst_r[i] = this.audio_samples_R[src_idx];
+			if (this.isSoundPlaying() && this.isRunning){
+				this.emu.frame()
 			}
 
-			this.audio_read_cursor = (this.audio_read_cursor + len) & SAMPLE_MASK;
+			const dst_l = dst.getChannelData(0)
+			const dst_r = dst.getChannelData(1)
+
+			for (let i = 0; i < len; i++) {
+				const src_idx = (this.audioReadCursor + i) & SAMPLE_MASK
+				dst_l[i] = this.audioSamplesLeft[src_idx]
+				dst_r[i] = this.audioSamplesRight[src_idx]
+			}
+
+			this.audioReadCursor = (this.audioReadCursor + len) & SAMPLE_MASK
 		})
 
 		script_processor.connect(audio_ctx.destination)

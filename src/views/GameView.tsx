@@ -1,3 +1,5 @@
+import '../styles/game-view.css'
+
 import { FC, useMemo } from 'react'
 
 import GameScreen from '../components/GameScreen'
