@@ -1,37 +1,25 @@
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useModelCtxEvent, useModelCtxState } from 'react-better-model'
+import { useModelCtx, useModelCtxEvent, useModelCtxState, useModelInstanceState } from 'react-better-model'
 import LocalStorage from '../services/LocalStorage'
 import NesEmu from '../services/NesEmu'
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../services/NesEmuConfig'
 import GameViewModelCtx from '../views/GameViewModel'
 
 const GameScreen: FC<{}> = () => {
-	const [rom] = useModelCtxState(GameViewModelCtx, 'rom')
+	const gameViewModel = useModelCtx(GameViewModelCtx)
+
+	const [rom] = useModelInstanceState(gameViewModel, 'rom')
+
 	const emuInitialized = useRef<boolean>()
 
 	const emu = useMemo(() => {
 		return new NesEmu()
 	}, [])
 
-	useModelCtxEvent(GameViewModelCtx, 'save-state', () => {
-		const state = emu.getState()
-
-		LocalStorage.set('savedStates', {
-			'rom-name': state,
-		})
-	})
-
-	useModelCtxEvent(GameViewModelCtx, 'load-state', () => {
-		const states = LocalStorage.get('savedStates')
-
-		if(states){
-			emu.loadState(states['rom-name'])
-		}
-	})
-
 	const initializeEmu = useCallback(() => {
 		if (!emuInitialized.current){
 			emuInitialized.current = true
+			gameViewModel.emulatorRef = emu
 			emu.init()
 		}
 	}, [emuInitialized.current, rom])

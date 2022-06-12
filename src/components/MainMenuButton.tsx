@@ -4,11 +4,13 @@ export enum MenuAction {
 	LOAD_ROM,
 	SAVE_STATE,
 	LOAD_STATE,
+	REC_DEMO,
+	STOP_REC_DEMO,
 }
 
 export type MainMenuButtonData = {
 	name: string
-	action: MenuAction
+	action: () => void
 }
 
 export type MainMenuButtonProps = MainMenuButtonData & {

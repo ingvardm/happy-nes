@@ -13,6 +13,19 @@ const DEFAULT_KEY_MAP: Record<string, ControllerInput> = {
 	o: ControllerInput.START,
 }
 
+export const GAMEPAD_KEY_MAP: Record<number, ControllerInput> = {
+	12: ControllerInput.UP,
+	13: ControllerInput.DOWN,
+	14: ControllerInput.LEFT,
+	15: ControllerInput.RIGHT,
+	0: ControllerInput.A,
+	2: ControllerInput.B,
+	3: ControllerInput.A, // BB
+	1: ControllerInput.B, // AA
+	8: ControllerInput.SELECT,
+	9: ControllerInput.START,
+}
+
 class Controller {
 	private keyMap: KeyMap = new Map(Object.entries(DEFAULT_KEY_MAP))
 

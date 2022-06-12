@@ -1,26 +1,23 @@
-import Suby from 'suby'
-
-type GamepadEvents = {
-	'state-change': []
-}
-
 export default class GamepadService {
-	private static eb = new Suby<GamepadEvents>()
 	private static gamepads: (Gamepad | null)[] = []
-	private static buttonsState: number[][]
+	private static buttonsState: number[][] = []
 
 	private static getGamepads(){
-		GamepadService.gamepads = navigator.getGamepads()
+		const gamepads = navigator.getGamepads()
+
+		GamepadService.gamepads = gamepads
+
+		gamepads.forEach((_, index) => {
+			GamepadService.buttonsState[index] = []
+		})
 	}
 
 	private static onGamepadConnected(event: GamepadEvent){
-		GamepadService.gamepads.push(event.gamepad)
+		GamepadService.gamepads[event.gamepad.index] = event.gamepad
 	}
 
 	private static onGamepadDisconnected(event: GamepadEvent){
-		const rIdx = GamepadService.gamepads.indexOf(event.gamepad)
-
-		GamepadService.gamepads.splice(rIdx, 1)
+		GamepadService.gamepads.splice(event.gamepad.index, 1)
 	}
 
 	private static attachListeners(){
@@ -44,7 +41,7 @@ export default class GamepadService {
 
 	static clock(cb: (gid: number, bid: number, v: number) => void){
 		for (let gIdx = 0; gIdx < GamepadService.gamepads.length; gIdx++){
-			const buttons = GamepadService.gamepads[gIdx]?.buttons
+			const buttons = navigator.getGamepads()[gIdx]?.buttons
 
 			if(buttons?.length){
 				for(let bIdx = 0; bIdx < buttons.length; bIdx++){
@@ -54,14 +51,9 @@ export default class GamepadService {
 						cb(gIdx, bIdx, value)
 						GamepadService.buttonsState[gIdx][bIdx] = value
 					}
+
 				}
 			}
-
-			console.log(GamepadService.gamepads[gIdx]?.mapping)
 		}
-	}
-
-	static poll(int: number){
-
 	}
 }

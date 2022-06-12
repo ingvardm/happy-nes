@@ -1,6 +1,8 @@
-import { EmulatorData, NES } from 'jsnes'
+import { ButtonKey, EmulatorData, NES } from 'jsnes'
 
-import Controller from './Controller'
+import Controller, { GAMEPAD_KEY_MAP } from './Controller'
+import Demo, { DemoFrame } from './Demo'
+import GamepadService from './Gamepad'
 import {
 	AUDIO_BUFFERING,
 	FRAMEBUFFER_SIZE,
@@ -26,12 +28,12 @@ class NesEmu {
 	private framebuffer_u32: Uint32Array = new Uint32Array()
 	//#endregion video
 
-	private lastSavedState: EmulatorData | null = null
+	private frameCounter = 0
 
 	private isRunning = false
 
 	private onNesFrame = (framebuffer_24: Buffer) => {
-		for (let i = 0; i < FRAMEBUFFER_SIZE; i++){
+		for (let i = 0; i < FRAMEBUFFER_SIZE; i++) {
 			this.framebuffer_u32[i] = 0xFF000000 | framebuffer_24[i]
 		}
 	}
@@ -50,7 +52,7 @@ class NesEmu {
 
 		const frameEnd = Date.now()
 
-		if(this.isRunning){
+		if (this.isRunning) {
 			const nextFrameDelay = TARGET_FRAME_TIME - (frameEnd - frameStart)
 			setTimeout(this.renderFrame, nextFrameDelay)
 		}
@@ -69,6 +71,57 @@ class NesEmu {
 		new Controller(this.emu, 1)
 	]
 	//#endregion controller
+
+	private advanceEmuFrame = () => {
+		if (this.playingDemo) {
+			const demoFrame = this.demo?.readNextFrame(this.frameCounter)
+
+			if (demoFrame) {
+				const inputs = demoFrame.input
+
+				for (let bIdx = 0; bIdx < demoFrame.input.length; bIdx++) {
+					if (inputs[bIdx].value) {
+						this.emu.buttonDown(1, inputs[bIdx].idx as ButtonKey)
+					} else {
+						this.emu.buttonUp(1, inputs[bIdx].idx as ButtonKey)
+					}
+				}
+			}
+		} else {
+			const demoInputs: DemoFrame['input'] = []
+
+			GamepadService.clock((gid, bid, v) => {
+				if (v === 1) {
+					this.emu.buttonDown(1, GAMEPAD_KEY_MAP[bid] as ButtonKey)
+				} else {
+					this.emu.buttonUp(1, GAMEPAD_KEY_MAP[bid] as ButtonKey)
+				}
+
+				if (this.recordingDemo) {
+					demoInputs.push({
+						idx: GAMEPAD_KEY_MAP[bid],
+						value: v,
+					})
+				}
+			})
+
+			if (demoInputs.length && this.recordingDemo) {
+				this.demo?.setFrame({
+					frameNumber: this.frameCounter,
+					input: demoInputs,
+				})
+			}
+		}
+
+		this.frameCounter++
+
+		this.emu.frame()
+	}
+
+	private recordingDemo = false
+	private playingDemo = false
+
+	demo: Demo | null = null
 
 	init = () => {
 		const canvas = document.getElementById('nes-canvas')! as HTMLCanvasElement
@@ -89,8 +142,8 @@ class NesEmu {
 			const dstBuffer = event.outputBuffer
 			const len = dstBuffer.length
 
-			if (this.isSoundPlaying() && this.isRunning){
-				this.emu.frame()
+			if (this.isSoundPlaying() && this.isRunning) {
+				this.advanceEmuFrame()
 			}
 
 			const dstBufferLeft = dstBuffer.getChannelData(0)
@@ -108,6 +161,8 @@ class NesEmu {
 		scriptProcessor.connect(audioCtx.destination)
 
 		// controllers
+		GamepadService.init()
+
 		this.controllers.forEach((controller) => {
 			controller.init()
 		})
@@ -115,6 +170,7 @@ class NesEmu {
 
 	destroy = () => {
 		this.isRunning = false
+		GamepadService.destroy()
 		this.controllers.forEach((controller) => {
 			controller.destroy()
 		})
@@ -126,12 +182,14 @@ class NesEmu {
 	}
 
 	run = () => {
+		this.frameCounter = 0
 		this.isRunning = true
 		this.renderFrame()
 	}
 
 	stop = () => {
 		this.isRunning = false
+		this.playingDemo = false
 	}
 
 	getState = () => {
@@ -140,6 +198,66 @@ class NesEmu {
 
 	loadState = (state: EmulatorData) => {
 		this.emu.fromJSON(state)
+	}
+
+	recordDemo = () => {
+		this.demo = new Demo(
+			{
+				frameNumber: this.frameCounter,
+				input: [],
+			},
+			{
+				initialState: JSON.stringify(this.emu.toJSON()),
+				romName: 'some name'
+			},
+		)
+
+		this.recordingDemo = true
+	}
+
+	stopRecordingDemo = () => {
+		this.recordingDemo = false
+
+		return this.demo
+	}
+
+	loadDemo = (demo: Demo) => {
+		this.demo = demo
+	}
+
+	playDemo = () => {
+		if (!this.demo) {
+			alert('no demo loaded!')
+			return
+		}
+
+		this.stop()
+		this.stopRecordingDemo()
+
+		requestAnimationFrame(() => {
+			this.demo!.resetPlayback()
+
+			this.playingDemo = true
+			this.frameCounter = this.demo!.frames[0].frameNumber
+
+			this.emu.fromJSON(JSON.parse(this.demo!.meta.initialState))
+
+			this.isRunning = true
+
+			this.renderFrame()
+		})
+	}
+
+	reset = () => {
+		this.stop()
+		this.stopRecordingDemo()
+
+		return new Promise<void>((resolve) => {
+			requestAnimationFrame(() => {
+				this.emu.reset()
+				resolve()
+			})
+		})
 	}
 }
 

@@ -8,38 +8,50 @@ import MainMenuButton, { MainMenuButtonData, MainMenuButtonProps, MenuAction } f
 import GameViewModelCtx from "../views/GameViewModel"
 import FileSelector from "./FileSelector"
 
-const mainMenuButtons: MainMenuButtonData[] = [
-	{
-		name: 'Open rom',
-		action: MenuAction.LOAD_ROM,
-	},
-	{
-		name: 'Save state',
-		action: MenuAction.SAVE_STATE,
-	},
-	{
-		name: 'Load state',
-		action: MenuAction.LOAD_STATE,
-	},
-]
+
 
 const MainMenu: FC = () => {
 	const fileSelectorRef = useRef<HTMLInputElement>(null)
 
 	const gameViewModel = useModelCtx(GameViewModelCtx)
 
+	const mainMenuButtons = useMemo(() => {
+		return [
+			{
+				name: 'Open rom',
+				action: () => {
+					fileSelectorRef.current && fileSelectorRef.current.click()
+				},
+			},
+			{
+				name: 'Save state',
+				action: gameViewModel.saveState,
+			},
+			{
+				name: 'Load state',
+				action: gameViewModel.loadState,
+			},
+			{
+				name: 'Record demo',
+				action: gameViewModel.recordDemo,
+			},
+			{
+				name: 'Stop recording',
+				action: gameViewModel.stopRecordingDemo,
+			},
+			{
+				name: 'Play demo',
+				action: gameViewModel.playDemo,
+			},
+			{
+				name: 'Stop demo',
+				action: gameViewModel.stopDemo,
+			},
+		]
+	}, [fileSelectorRef.current])
+
 	const onButtonPress = useCallback<MainMenuButtonProps['onPress']>((btnData, e) => {
-		switch (btnData.action) {
-			case MenuAction.LOAD_ROM:
-				fileSelectorRef.current && fileSelectorRef.current.click()
-				break
-			case MenuAction.SAVE_STATE:
-				gameViewModel.dispatch('save-state')
-				break
-			case MenuAction.LOAD_STATE:
-				gameViewModel.dispatch('load-state')
-				break
-		}
+		btnData.action()
 	}, [])
 
 	const buttons = useMemo(() => {
