@@ -47,6 +47,10 @@ const MainMenu: FC = () => {
 				name: 'Stop demo',
 				action: gameViewModel.stopDemo,
 			},
+			{
+				name: 'Load demo',
+				action: gameViewModel.loadDemo,
+			},
 		]
 	}, [fileSelectorRef.current])
 

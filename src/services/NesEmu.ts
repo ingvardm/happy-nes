@@ -201,18 +201,18 @@ class NesEmu {
 	}
 
 	recordDemo = () => {
-		this.demo = new Demo(
-			{
-				frameNumber: this.frameCounter,
-				input: [],
-			},
-			{
-				initialState: JSON.stringify(this.emu.toJSON()),
-				romName: 'some name'
-			},
-		)
+		this.stop()
+		this.stopRecordingDemo()
 
-		this.recordingDemo = true
+		requestAnimationFrame(() => {
+			this.demo = new Demo({ romName: 'some name' })
+			this.frameCounter = 0
+			this.isRunning = true
+			this.recordingDemo = true
+			
+			this.emu.reloadROM()
+			this.renderFrame()
+		})
 	}
 
 	stopRecordingDemo = () => {
@@ -238,9 +238,9 @@ class NesEmu {
 			this.demo!.resetPlayback()
 
 			this.playingDemo = true
-			this.frameCounter = this.demo!.frames[0].frameNumber
+			this.frameCounter = 0
 
-			this.emu.fromJSON(JSON.parse(this.demo!.meta.initialState))
+			this.emu.reloadROM()
 
 			this.isRunning = true
 

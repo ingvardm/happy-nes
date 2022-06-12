@@ -1,6 +1,5 @@
 export type DemoMetaData = {
 	romName: string
-	initialState: string
 }
 
 export type DemoFrame = {
@@ -12,7 +11,6 @@ export type DemoFrame = {
 }
 
 export type DemoRaw = {
-	initialFrame: DemoFrame
 	meta: DemoMetaData
 	frames: DemoFrame[]
 }
@@ -20,7 +18,6 @@ export type DemoRaw = {
 export default class Demo {
 	static fromRawData(data: DemoRaw){
 		return new Demo(
-			data.initialFrame,
 			data.meta,
 			data.frames,
 		)
@@ -29,16 +26,9 @@ export default class Demo {
 	private playBackReadCursor = 0
 
 	constructor(
-		public initialFrame: DemoFrame,
 		public meta: DemoMetaData,
 		public frames: DemoFrame[] = []
-	){
-		this.setFrame(initialFrame)
-	}
-
-	save = () => {
-		// save to disk
-	}
+	){ }
 
 	setFrame = (frame: DemoFrame) => {
 		this.frames.push(frame)
@@ -61,7 +51,6 @@ export default class Demo {
 
 	getRawData = (): DemoRaw => {
 		return {
-			initialFrame: this.initialFrame,
 			meta: this.meta,
 			frames: this.frames,
 		}

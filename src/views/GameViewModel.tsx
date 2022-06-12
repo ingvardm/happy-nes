@@ -1,6 +1,6 @@
 import { createContext } from 'react'
-import {Model} from 'react-better-model'
-import Demo from '../services/Demo'
+import { Model } from 'react-better-model'
+import Demo, { DemoRaw } from '../services/Demo'
 import LocalStorage from '../services/LocalStorage'
 import NesEmu from '../services/NesEmu'
 
@@ -11,7 +11,7 @@ const gameViewModelInitialState = {
 export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 	public emulatorRef: NesEmu | null = null
 
-	constructor(state = gameViewModelInitialState){
+	constructor(state = gameViewModelInitialState) {
 		super(state)
 	}
 
@@ -22,7 +22,7 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 	saveState = () => {
 		const state = this.emulatorRef?.getState()
 
-		if(state){
+		if (state) {
 			LocalStorage.set('savedStates', {
 				'rom-name': state,
 			})
@@ -38,7 +38,40 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 	}
 
 	loadDemo = () => {
+		const fileInput = document.createElement('input')
 
+		fileInput.setAttribute('type', 'file')
+		fileInput.setAttribute('accept', '.hnd')
+
+		fileInput.onchange = async (event) => {
+			if (fileInput.files?.length) {
+				const demoFile = fileInput.files[0]
+
+				const reader = new FileReader()
+
+				reader.onload = (ev: ProgressEvent<FileReader>) => {
+					if (reader.result) {
+						const demoData: DemoRaw = JSON.parse(reader.result.toString())
+
+						const demo = new Demo(
+							demoData.meta,
+							demoData.frames,
+						)
+
+						this.emulatorRef?.loadDemo(demo)
+
+						console.log(JSON.parse(reader.result.toString()))
+					}
+
+
+					return {} as any
+				}
+
+				reader.readAsBinaryString(demoFile)
+			}
+		}
+
+		fileInput.click()
 	}
 
 	playDemo = async () => {
@@ -57,10 +90,11 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 	stopRecordingDemo = () => {
 		const demo = this.emulatorRef?.stopRecordingDemo()
 
-		if(!demo) return
+		if (!demo) return
 
 		const a = document.createElement('a')
 		const file = new Blob([JSON.stringify(demo.getRawData(), null, 2)], { type: 'text/plain' })
+
 		a.href = URL.createObjectURL(file)
 		a.download = 'demo.hnd'
 		a.click()
