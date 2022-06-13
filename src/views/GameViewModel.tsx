@@ -15,8 +15,32 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 		super(state)
 	}
 
-	loadRom = async (rom: string) => {
-		this.setValue('rom', rom)
+	loadRom = async () => {
+		const fileInput = document.createElement('input')
+
+		fileInput.setAttribute('type', 'file')
+		fileInput.setAttribute('accept', '.nes')
+
+		fileInput.onchange = async (event) => {
+			if (fileInput.files?.length) {
+				const rom = fileInput.files[0]
+				const reader = new FileReader()
+
+				reader.onload = (ev: ProgressEvent<FileReader>) => {
+					if (reader.result) {
+						console.log(`ROM loaded ${ev.loaded / 1000}KB`)
+						this.setState({rom: reader.result.toString()})
+					}
+
+					return {} as any
+				}
+
+				reader.readAsBinaryString(rom)
+
+			}
+		}
+
+		fileInput.click()
 	}
 
 	saveState = () => {
