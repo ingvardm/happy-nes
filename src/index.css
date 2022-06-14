@@ -1,3 +1,7 @@
+html {
+  font-size: 10px;
+}
+
 html, body, #game-view, #root, .App {
   margin: 0;
   padding: 0;
@@ -15,6 +19,5 @@ body {
   --native-height: 240px;
   --native-width: 256px;
 
-  font-size: 12px;
   font-size: 1rem;
 }

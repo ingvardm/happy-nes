@@ -1,8 +1,7 @@
 import { ButtonKey, EmulatorData, NES } from 'jsnes'
 
-import Controller, { GAMEPAD_KEY_MAP } from './Controller'
 import Demo, { DemoFrame } from './Demo'
-import GamepadService from './Gamepad'
+import GamepadService, { DEFAULT_KEY_MAP, GAMEPAD_KEY_MAP } from './Gamepad'
 import {
 	AUDIO_BUFFERING,
 	FRAMEBUFFER_SIZE,
@@ -66,12 +65,6 @@ class NesEmu {
 	private isSoundPlaying = () =>
 		((this.audioWriteCursor - this.audioReadCursor) & SAMPLE_MASK) < AUDIO_BUFFERING
 
-	//#region controller
-	private controllers: Controller[] = [
-		new Controller(this.emu, 1)
-	]
-	//#endregion controller
-
 	private advanceEmuFrame = () => {
 		if (this.playingDemo) {
 			const demoFrame = this.demo?.readNextFrame(this.frameCounter)
@@ -91,15 +84,25 @@ class NesEmu {
 			const demoInputs: DemoFrame['input'] = []
 
 			GamepadService.clock((gid, bid, v) => {
-				if (v === 1) {
-					this.emu.buttonDown(1, GAMEPAD_KEY_MAP[bid] as ButtonKey)
+				let button: ButtonKey | null = null
+
+				if(gid === 0){ // keyboard
+					button = DEFAULT_KEY_MAP[bid] as ButtonKey
 				} else {
-					this.emu.buttonUp(1, GAMEPAD_KEY_MAP[bid] as ButtonKey)
+					button = GAMEPAD_KEY_MAP[bid] as ButtonKey
+				}
+
+				if(button === null) return
+
+				if (v === 1) {
+					this.emu.buttonDown(1, button)
+				} else {
+					this.emu.buttonUp(1, button)
 				}
 
 				if (this.recordingDemo) {
 					demoInputs.push({
-						idx: GAMEPAD_KEY_MAP[bid],
+						idx: button,
 						value: v,
 					})
 				}
@@ -162,18 +165,11 @@ class NesEmu {
 
 		// controllers
 		GamepadService.init()
-
-		this.controllers.forEach((controller) => {
-			controller.init()
-		})
 	}
 
 	destroy = () => {
 		this.isRunning = false
 		GamepadService.destroy()
-		this.controllers.forEach((controller) => {
-			controller.destroy()
-		})
 	}
 
 	loadROM = async (rom: string) => {
@@ -234,17 +230,11 @@ class NesEmu {
 		this.stop()
 		this.stopRecordingDemo()
 
-		requestAnimationFrame(() => {
-			this.demo!.resetPlayback()
+		requestAnimationFrame(async () => {
+			await this.reset()
 
 			this.playingDemo = true
-			this.frameCounter = 0
-
-			this.emu.reloadROM()
-
-			this.isRunning = true
-
-			this.renderFrame()
+			this.run()
 		})
 	}
 
@@ -254,7 +244,9 @@ class NesEmu {
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
+				this.demo!.resetPlayback()
 				this.emu.reset()
+				this.emu.reloadROM()
 				resolve()
 			})
 		})

@@ -29,8 +29,8 @@ const MainMenuButton: FC<MainMenuButtonProps> = ({
 		onPress({name, action}, e)
 	}, [action, name, onPress])
 
-	return <div onClick={_onPress}>
-		<p className='main-menu-button'>{name}</p>
+	return <div onClick={_onPress} className='main-menu-button'>
+		<p className='main-menu-button-text'>{name}</p>
 	</div>
 }
 

@@ -45,6 +45,14 @@ const MainMenu: FC = () => {
 				name: 'Load demo',
 				action: gameViewModel.loadDemo,
 			},
+			{
+				name: 'Reset',
+				action: gameViewModel.reset,
+			},
+			{
+				name: 'fullscreen',
+				action: gameViewModel.goFullscreen,
+			},
 		]
 	}, [])
 

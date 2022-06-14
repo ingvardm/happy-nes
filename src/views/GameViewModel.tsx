@@ -83,8 +83,6 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 						)
 
 						this.emulatorRef?.loadDemo(demo)
-
-						console.log(JSON.parse(reader.result.toString()))
 					}
 
 
@@ -122,6 +120,17 @@ export class GameViewModel extends Model<typeof gameViewModelInitialState> {
 		a.href = URL.createObjectURL(file)
 		a.download = 'demo.hnd'
 		a.click()
+	}
+
+	reset = async () => {
+		await this.emulatorRef?.reset()
+		this.emulatorRef?.run()
+	}
+
+	goFullscreen = async () => {
+		await document.body.requestFullscreen({
+			navigationUI: 'hide',
+		})
 	}
 }
 
